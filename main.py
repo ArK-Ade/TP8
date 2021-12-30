@@ -1,6 +1,11 @@
 # coding: utf-8
 
 # Librairies
+import threading
+import multiprocessing
+
+import os
+import math
 import asyncio
 import time
 
@@ -26,7 +31,7 @@ async def main():
 Cette fonction simule un calcul très long
 """
 
-nombre_final = 1E7
+nombre_final = 100.0
 
 
 def calcul_long():
@@ -41,11 +46,19 @@ def calcul_long():
 def calcul_longV2():
     global nombre_final
     nombre_final -= 1
-    print(nombre_final)
+    # print("nombre final : " + str(nombre_final))
 
 
 def calcul_long_multi_thread():
-    pass
+
+    print(f"started at {time.strftime('%X')}")
+
+    for i in range(int(nombre_final)):
+        # print(' registered thread %d' % i)
+        threading.Thread(target=calcul_longV2, args=()).start()
+
+    print(f"finished at {time.strftime('%X')}")
+    # print("active count : " + str(threading.active_count()))
 
 
 def calcul_long_multi_processing():
@@ -60,7 +73,8 @@ def calcul_long_multi_processing():
 
 print("Debut du programme")
 
-asyncio.run(main())
+# asyncio.run(main())
 
-# calcul_long()
+calcul_long()
 # calcul_long_multi_thread()
+calcul_long_multi_thread()
