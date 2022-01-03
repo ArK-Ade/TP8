@@ -8,30 +8,19 @@ import os
 import math
 import asyncio
 import time
+import sys
+import itertools
 
 
-async def main():
-    global nombre_final
-
-    print(f"started at {time.strftime('%X')}")
-
-    # Wait until both tasks are completed (should take
-    # around 2 seconds.)
-
-    groupe = await asyncio.gather(
-        calcul_longV2(),
-    )
-    print(groupe)
-
-    print(f"finished at {time.strftime('%X')}")
-    print(groupe)
+class Signal:
+    go = True
 
 
 """
 Cette fonction simule un calcul très long
 """
 
-nombre_final = 100.0
+nombre_final = 100000.0
 
 
 def calcul_long():
@@ -43,22 +32,42 @@ def calcul_long():
     print("nombre final " + str(n))
 
 
-def calcul_longV2():
+def calcul_longV2(signal):
     global nombre_final
-    nombre_final -= 1
-    # print("nombre final : " + str(nombre_final))
+    if nombre_final > 0:
+        nombre_final -= 1
+    else:
+        signal.go = False
 
 
 def calcul_long_multi_thread():
-
     print(f"started at {time.strftime('%X')}")
+    threads = []
+    signal = Signal()
 
-    for i in range(int(nombre_final)):
-        # print(' registered thread %d' % i)
-        threading.Thread(target=calcul_longV2, args=()).start()
+    # boucle
+    while signal.go:
+
+        # creation du tableau
+        for i in range(os.cpu_count()):
+            # print(' registered thread %d' % i)
+
+            th = threading.Thread(target=calcul_longV2, args=(signal,))
+            threads.append(th)
+
+        # lancement des threads
+        for thread in threads:
+            thread.start()
+
+        # synchronisation
+        for thread in threads:
+            thread.join()
+
+        threads.clear()
 
     print(f"finished at {time.strftime('%X')}")
-    # print("active count : " + str(threading.active_count()))
+    print("nombre final " + str(nombre_final))
+    print("active count : " + str(threading.active_count()))
 
 
 def calcul_long_multi_processing():
@@ -71,10 +80,8 @@ def calcul_long_multi_processing():
 #  Les paramètres (page 205 du pdf) seront à mettre dans un fichier texte ou mieux XML.
 #  En plus de dessiner une jolie peinture, l’objectif est de mettre en oeuvre la programmation asynchrone.
 
+
 print("Debut du programme")
-
-# asyncio.run(main())
-
 calcul_long()
 # calcul_long_multi_thread()
 calcul_long_multi_thread()
