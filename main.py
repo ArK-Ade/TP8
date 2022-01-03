@@ -71,7 +71,33 @@ def calcul_long_multi_thread():
 
 
 def calcul_long_multi_processing():
-    pass
+    print(f"started at {time.strftime('%X')}")
+    processes = []
+    signal = Signal()
+
+    # boucle
+    while signal.go:
+
+        # creation du tableau
+        for i in range(os.cpu_count()):
+            # print(' registered thread %d' % i)
+
+            pr = multiprocessing.Process(target=calcul_longV2, args=(signal,))
+            processes.append(pr)
+
+        # lancement des processus
+        for process in processes:
+            process.start()
+
+        # synchronisation
+        for process in processes:
+            process.join()
+
+        processes.clear()
+
+    print(f"finished at {time.strftime('%X')}")
+    print("nombre final " + str(nombre_final))
+    print("active count : " + str(threading.active_count()))
 
 
 # TODO effectuer le multi threading et multi processing sur la fonction calcul_long()
