@@ -3,6 +3,7 @@
 # Librairies
 import threading
 import multiprocessing
+from multiprocessing import Pool
 
 import os
 import math
@@ -20,7 +21,7 @@ class Signal:
 Cette fonction simule un calcul très long
 """
 
-nombre_final = 100000.0
+nombre_final = 30.0
 
 
 def calcul_long():
@@ -32,27 +33,39 @@ def calcul_long():
     print("nombre final " + str(n))
 
 
-def calcul_longV2(signal):
+def calcul_longV2(self):
     global nombre_final
     if nombre_final > 0:
         nombre_final -= 1
     else:
-        signal.go = False
+        Signal.go = False
+
+
+def calcul_longLock(lock):
+    lock.acquire()
+    global nombre_final
+
+    try:
+        if nombre_final > 0:
+            nombre_final -= 1
+        else:
+            Signal.go = False
+    finally:
+        pass
 
 
 def calcul_long_multi_thread():
     print(f"started at {time.strftime('%X')}")
     threads = []
-    signal = Signal()
 
     # boucle
-    while signal.go:
+    while Signal.go:
 
         # creation du tableau
         for i in range(os.cpu_count()):
             # print(' registered thread %d' % i)
 
-            th = threading.Thread(target=calcul_longV2, args=(signal,))
+            th = threading.Thread(target=calcul_longV2, args=())
             threads.append(th)
 
         # lancement des threads
@@ -72,28 +85,12 @@ def calcul_long_multi_thread():
 
 def calcul_long_multi_processing():
     print(f"started at {time.strftime('%X')}")
-    processes = []
-    signal = Signal()
 
-    # boucle
-    while signal.go:
+    lock = multiprocessing.Lock()
 
-        # creation du tableau
-        for i in range(os.cpu_count()):
-            # print(' registered thread %d' % i)
-
-            pr = multiprocessing.Process(target=calcul_longV2, args=(signal,))
-            processes.append(pr)
-
-        # lancement des processus
-        for process in processes:
-            process.start()
-
-        # synchronisation
-        for process in processes:
-            process.join()
-
-        processes.clear()
+    while Signal.go:
+        for num in range(os.cpu_count()):
+            multiprocessing.Process(target=calcul_longLock, args=(lock,))
 
     print(f"finished at {time.strftime('%X')}")
     print("nombre final " + str(nombre_final))
@@ -106,8 +103,8 @@ def calcul_long_multi_processing():
 #  Les paramètres (page 205 du pdf) seront à mettre dans un fichier texte ou mieux XML.
 #  En plus de dessiner une jolie peinture, l’objectif est de mettre en oeuvre la programmation asynchrone.
 
-
-print("Debut du programme")
-calcul_long()
-# calcul_long_multi_thread()
-calcul_long_multi_thread()
+if __name__ == '__main__':
+    print("Debut du programme")
+    calcul_long()
+    # calcul_long_multi_thread()
+    calcul_long_multi_processing()
