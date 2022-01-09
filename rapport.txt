@@ -1,0 +1,27 @@
+Rapport du TP8 python :
+
+- L'utilisation du système de threads est présenté dans le fichier multithreading_example.py (script threads)
+- L'utilisation du système de processus est présenté dans le fichier multiprocessing_example.py (script processus)
+
+En faisant varier le nombre de threads de 1 à 4 dans le script threads (car notre machine possède 1 processeur à 4 coeurs),
+on constate que le temps d'exécution est proportionnel au nombre d'instances (le temps d'exécution reste sensiblement
+différent entre chaque run du script, mais il est de l'ordre de 7sec pour un thread avec n = 1E8).
+
+Au contraire, on constate que le temps d'exécution du script processus n'est pas impacté par le nombre de processus (que
+nous avons fait varier de 1 à 4 également pour comparer, avec n = 1E8 toujours). Chaque processus créé semble pouvoir dérouler
+la fonction calcul_long en parallèle et le temps d'exécution reste stable dans l'ordre des 7 à 8 secondes, quel que soit le
+nombre de processus créés entre 1 à 4.
+
+Cela semble étrange à première vue par la définition même du calcul en multithreads. Une explication trouvée sur internet
+serait la présence du GIL, soit le "Global Interpreter Lock". C'est un système de mutex en python qui limite l'emploi de
+l'interpreteur python par un seul thread. Cela signifie qu'un seul thread peut être en état d'exécution à la fois.
+
+La limitation imposée par le GIL est davantage visible sur les scripts python qualifiés de "CPU-bound", c'est-à-dire les
+scripts qui appellent de gros calculs et ces calculs sont ceux qui fond plafonner l'efficacité d'exécution d'un script.
+À l'inverse, on peut trouver des "IO-bound" scripts, qui sont limités par la lecture ou l'écriture de fichiers par exemple.
+
+Notre script de décrémentation d'un grand nombre est bien CPU-bound et cela expliquerait le constat que l'on a fait.
+
+Un lien reprenant ces explications avec un test similaire sur un script de décrémentation :
+https://realpython.com/python-gil/#the-impact-on-multi-threaded-python-programs
+
